@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 16:12:12 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 16:55:14 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 18:49:25 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,4 +66,21 @@ void	ft_sleep(long usec, t_table *table)
 				;
 		}
 	}
+}
+
+void	ft_clean(t_table *table)
+{
+	t_philo	*philo;
+	int		i;
+
+	i = -1;
+	while (table->philo_nbr > ++i)
+	{
+		philo = table->philos + i;
+		ft_mutex_handler(&philo->philo_mutex, DESTROY);
+	}
+	ft_mutex_handler(&table->write_mutex, DESTROY);
+	ft_mutex_handler(&table->table_mutex, DESTROY);
+	free(table->forks);
+	free(table->philos);
 }

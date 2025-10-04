@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 18:01:38 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 18:12:38 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 18:30:49 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -95,4 +95,6 @@ void	ft_dinner_start(t_table *table)
 	i = -1;
 	while (table->philo_nbr > ++i)
 		ft_thread_handler(&table->philos[i].thread_id, NULL, NULL, JOIN);
+	set_bool(&table->table_mutex, &table->end_simulation, true);
+	ft_thread_handler(&table->monitor, NULL, NULL, JOIN);
 }

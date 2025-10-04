@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 19:17:20 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 17:33:07 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 18:13:59 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,7 @@ bool	ft_all_threads_running(t_mtx *mutex, long *threads, long philo_nbr)
 
 	ret = false;
 	ft_mutex_handler(mutex, LOCK);
-	if (*threads == philo_nbr);
+	if (*threads == philo_nbr)
 		ret = true;
 	ft_mutex_handler(mutex, UNLOCK);
 	return (ret);

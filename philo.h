@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 15:53:57 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 17:40:56 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 18:39:41 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,6 +137,7 @@ long	ft_gettime(t_time time);
 void	ft_sleep(long usec, t_table *table);
 void	ft_exit_error(const char *error);
 void	*ft_malloc(size_t bytes);
+void	ft_clean(t_table *table);
 
 // write.c
 void	ft_write_status(t_philo_status status, t_philo *philo);

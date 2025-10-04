@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/04 17:21:02 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 17:55:18 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 18:15:15 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,8 @@ static bool	ft_philo_died(t_philo *philo)
 		return (false);
 	elapsed = ft_gettime(MILISECOND) -
 		get_long(&philo->philo_mutex, &philo->last_meal_time);
-	time_to_die = philo->table->time_to_die;
-	if (elapsed > (time_to_die * 1e3))
+	time_to_die = philo->table->time_to_die / 1e3;
+	if (elapsed > (time_to_die))
 		return (true);
 	return (false);
 }
