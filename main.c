@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 16:10:24 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/09/28 20:35:34 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 19:00:21 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ int	main(int argc, char **argv)
 		ft_parse_input(&table, argv);
 		ft_data_init(&table);
 		ft_dinner_start(&table);
-		//ft_clean(&table);
+		ft_clean(&table);
 	}
 	else
 	{

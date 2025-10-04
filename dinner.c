@@ -6,15 +6,28 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 18:01:38 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 18:30:49 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 19:36:30 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "philo.h"
 
-static void	ft_thinking(t_philo *philo)
+void	ft_thinking(t_philo *philo, bool pre_sim)
 {
-	ft_write_status(THINKING, philo);
+	long	t_eat;
+	long	t_sleep;
+	long	t_think;
+
+	if (!pre_sim)
+		ft_write_status(THINKING, philo);
+	if ((philo->table->philo_nbr % 2) == 0)
+		return ;
+	t_eat = philo->table->time_to_eat;
+	t_sleep = philo->table->time_to_sleep;
+	t_think = t_eat * 2 - t_sleep;
+	if (t_think < 0)
+		t_think = 0;
+	ft_sleep(t_think * 0.42, philo->table);
 }
 
 static void	ft_eat(t_philo *philo)
@@ -61,6 +74,7 @@ void	*ft_dinner_simulation(void *data)
 			ft_gettime(MILISECOND));
 	ft_increase_long(&philo->table->table_mutex,
 			&philo->table->nbr_threads_running);
+	ft_desynchronize(philo);
 	while (!ft_simulation_finished(philo->table))
 	{
 		if (philo->full)
@@ -68,7 +82,7 @@ void	*ft_dinner_simulation(void *data)
 		ft_eat(philo);
 		ft_write_status(SLEEPING, philo);
 		ft_sleep(philo->table->time_to_sleep, philo->table);
-		ft_thinking(philo);
+		ft_thinking(philo, false);
 	}
 	return (NULL);
 }

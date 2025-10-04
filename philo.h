@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 15:53:57 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 18:39:41 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 19:34:48 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,6 +105,7 @@ typedef struct s_table
 
 void	ft_dinner_start(t_table *table);
 void	*ft_dinner_simulation(void *data);
+void	ft_thinking(t_philo *philo, bool pre_sim);
 
 // getter_setter.c
 void	set_bool(t_mtx *mutex, bool *dest, bool value);
@@ -131,6 +132,7 @@ void	ft_parse_input(t_table *table, char **argv);
 void	ft_wait_threads(t_table *table);
 bool	ft_all_threads_running(t_mtx *mutex, long *threads, long philo_nbr);
 void	ft_increase_long(t_mtx *mutex, long *value);
+void	ft_desynchronize(t_philo *philo);
 
 // utils.c
 long	ft_gettime(t_time time);
