@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 16:52:26 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/09/28 20:16:55 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 17:26:04 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -51,6 +51,7 @@ void	ft_data_init(t_table *table)
 	i = -1;
 	table->end_simulation = false;
 	table->threads_ready = false;
+	table->nbr_threads_running = 0;
 	table->philos = ft_malloc(sizeof(t_philo) * table->philo_nbr);
 	ft_mutex_handler(&table->table_mutex, INIT);
 	ft_mutex_handler(&table->write_mutex, INIT);

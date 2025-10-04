@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 16:12:12 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/09/28 19:44:37 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/04 16:55:14 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,7 +59,7 @@ void	ft_sleep(long usec, t_table *table)
 		elapsed = ft_gettime(MICROSECOND) - start;
 		rem = usec - elapsed;
 		if (rem > 1e3)
-			usleep(usec / 2);
+			usleep(rem / 2);
 		else
 		{
 			while (ft_gettime(MICROSECOND) - start < usec)
