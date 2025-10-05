@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 18:01:38 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 19:36:30 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 16:59:02 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ static void	ft_eat(t_philo *philo)
 	ft_mutex_handler(&philo->second_fork->fork, LOCK);
 	ft_write_status(TAKE_SECOND_FORK, philo);
 	set_long(&philo->philo_mutex, &philo->last_meal_time,
-			ft_gettime(MILISECOND));
+		ft_gettime(MILISECOND));
 	philo->meals_counter++;
 	ft_write_status(EATING, philo);
 	ft_sleep(philo->table->time_to_eat, philo->table);
@@ -51,13 +51,13 @@ static void	ft_eat(t_philo *philo)
 void	*ft_lone_philo(void *arg)
 {
 	t_philo	*philo;
-	
+
 	philo = (t_philo *)arg;
 	ft_wait_threads(philo->table);
 	set_long(&philo->philo_mutex, &philo->last_meal_time,
-			ft_gettime(MILISECOND));
+		ft_gettime(MILISECOND));
 	ft_increase_long(&philo->table->table_mutex,
-			&philo->table->nbr_threads_running);
+		&philo->table->nbr_threads_running);
 	ft_write_status(TAKE_FIRST_FORK, philo);
 	while (!ft_simulation_finished(philo->table))
 		usleep(200);
@@ -71,9 +71,9 @@ void	*ft_dinner_simulation(void *data)
 	philo = (t_philo *)data;
 	ft_wait_threads(philo->table);
 	set_long(&philo->philo_mutex, &philo->last_meal_time,
-			ft_gettime(MILISECOND));
+		ft_gettime(MILISECOND));
 	ft_increase_long(&philo->table->table_mutex,
-			&philo->table->nbr_threads_running);
+		&philo->table->nbr_threads_running);
 	ft_desynchronize(philo);
 	while (!ft_simulation_finished(philo->table))
 	{
@@ -101,7 +101,7 @@ void	ft_dinner_start(t_table *table)
 	{
 		while (table->philo_nbr > ++i)
 			ft_thread_handler(&table->philos[i].thread_id, ft_dinner_simulation,
-					&table->philos[i], CREATE);
+				&table->philos[i], CREATE);
 	}
 	ft_thread_handler(&table->monitor, ft_monitor, table, CREATE);
 	table->start_simulation = ft_gettime(MILISECOND);

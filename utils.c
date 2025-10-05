@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 16:12:12 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 18:49:25 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 17:00:13 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,7 @@ void	ft_exit_error(const char *error)
 long	ft_gettime(t_time time)
 {
 	struct timeval	tv;
-	
+
 	if (gettimeofday(&tv, NULL))
 		ft_exit_error("gettimeofday failed!");
 	if (time == SECOND)
@@ -70,14 +70,13 @@ void	ft_sleep(long usec, t_table *table)
 
 void	ft_clean(t_table *table)
 {
-	t_philo	*philo;
 	int		i;
 
 	i = -1;
 	while (table->philo_nbr > ++i)
 	{
-		philo = table->philos + i;
-		ft_mutex_handler(&philo->philo_mutex, DESTROY);
+		ft_mutex_handler(&table->philos[i].philo_mutex, DESTROY);
+		ft_mutex_handler(&table->forks[i].fork, DESTROY);
 	}
 	ft_mutex_handler(&table->write_mutex, DESTROY);
 	ft_mutex_handler(&table->table_mutex, DESTROY);

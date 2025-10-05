@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/04 17:21:02 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 18:15:15 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 17:01:16 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,8 +19,8 @@ static bool	ft_philo_died(t_philo *philo)
 
 	if (get_bool(&philo->philo_mutex, &philo->full))
 		return (false);
-	elapsed = ft_gettime(MILISECOND) -
-		get_long(&philo->philo_mutex, &philo->last_meal_time);
+	elapsed = ft_gettime(MILISECOND)
+		- get_long(&philo->philo_mutex, &philo->last_meal_time);
 	time_to_die = philo->table->time_to_die / 1e3;
 	if (elapsed > (time_to_die))
 		return (true);
@@ -34,7 +34,7 @@ void	*ft_monitor(void *data)
 
 	table = (t_table *)data;
 	while (!ft_all_threads_running(&table->table_mutex,
-		&table->nbr_threads_running, table->philo_nbr))
+			&table->nbr_threads_running, table->philo_nbr))
 		;
 	while (!ft_simulation_finished(table))
 	{

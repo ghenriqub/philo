@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 15:53:57 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/04 19:34:48 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 16:59:35 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -117,7 +117,7 @@ bool	ft_simulation_finished(t_table *table);
 // handlers.c
 void	ft_mutex_handler(t_mtx	*mutex, t_opcode opcode);
 void	ft_thread_handler(pthread_t	*thread, void *(*foo)(void *),
-		void*data, t_opcode opcode);
+			void*data, t_opcode opcode);
 
 // init.c
 void	ft_data_init(t_table *table);
