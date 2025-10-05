@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/09/28 18:01:38 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/05 16:59:02 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 17:44:45 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,9 @@ static void	ft_eat(t_philo *philo)
 	ft_write_status(TAKE_SECOND_FORK, philo);
 	set_long(&philo->philo_mutex, &philo->last_meal_time,
 		ft_gettime(MILISECOND));
+	ft_mutex_handler(&philo->philo_mutex, LOCK);
 	philo->meals_counter++;
+	ft_mutex_handler(&philo->philo_mutex, UNLOCK);
 	ft_write_status(EATING, philo);
 	ft_sleep(philo->table->time_to_eat, philo->table);
 	if (philo->table->nbr_limit_meals > 0
@@ -77,7 +79,7 @@ void	*ft_dinner_simulation(void *data)
 	ft_desynchronize(philo);
 	while (!ft_simulation_finished(philo->table))
 	{
-		if (philo->full)
+		if (get_bool(&philo->philo_mutex, &philo->full))
 			break ;
 		ft_eat(philo);
 		ft_write_status(SLEEPING, philo);

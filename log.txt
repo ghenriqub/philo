@@ -1,0 +1,641 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   dinner.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 18:01:38 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/05 17:30:43 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	ft_thinking(t_philo *philo, bool pre_sim)
+{
+	long	t_eat;
+	long	t_sleep;
+	long	t_think;
+
+	if (!pre_sim)
+		ft_write_status(THINKING, philo);
+	if ((philo->table->philo_nbr % 2) == 0)
+		return ;
+	t_eat = philo->table->time_to_eat;
+	t_sleep = philo->table->time_to_sleep;
+	t_think = t_eat * 2 - t_sleep;
+	if (t_think < 0)
+		t_think = 0;
+	ft_sleep(t_think * 0.42, philo->table);
+}
+
+static void	ft_eat(t_philo *philo)
+{
+	ft_mutex_handler(&philo->first_fork->fork, LOCK);
+	ft_write_status(TAKE_FIRST_FORK, philo);
+	ft_mutex_handler(&philo->second_fork->fork, LOCK);
+	ft_write_status(TAKE_SECOND_FORK, philo);
+	set_long(&philo->philo_mutex, &philo->last_meal_time,
+		ft_gettime(MILISECOND));
+	ft_mutex_handler(&philo->philo_mutex, LOCK);
+	philo->meals_counter++;
+	ft_mutex_handler(&philo->philo_mutex, UNLOCK);
+	ft_write_status(EATING, philo);
+	ft_sleep(philo->table->time_to_eat, philo->table);
+	if (philo->table->nbr_limit_meals > 0
+		&& philo->meals_counter == philo->table->nbr_limit_meals)
+		set_bool(&philo->philo_mutex, &philo->full, true);
+	ft_mutex_handler(&philo->first_fork->fork, UNLOCK);
+	ft_mutex_handler(&philo->second_fork->fork, UNLOCK);
+}
+
+void	*ft_lone_philo(void *arg)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	ft_wait_threads(philo->table);
+	set_long(&philo->philo_mutex, &philo->last_meal_time,
+		ft_gettime(MILISECOND));
+	ft_increase_long(&philo->table->table_mutex,
+		&philo->table->nbr_threads_running);
+	ft_write_status(TAKE_FIRST_FORK, philo);
+	while (!ft_simulation_finished(philo->table))
+		usleep(200);
+	return (NULL);
+}
+
+void	*ft_dinner_simulation(void *data)
+{
+	t_philo	*philo;
+
+	philo = (t_philo *)data;
+	ft_wait_threads(philo->table);
+	set_long(&philo->philo_mutex, &philo->last_meal_time,
+		ft_gettime(MILISECOND));
+	ft_increase_long(&philo->table->table_mutex,
+		&philo->table->nbr_threads_running);
+	ft_desynchronize(philo);
+	while (!ft_simulation_finished(philo->table))
+	{
+		if (get_bool(&philo->philo_mutex, &philo->full))
+			break ;
+		ft_eat(philo);
+		ft_write_status(SLEEPING, philo);
+		ft_sleep(philo->table->time_to_sleep, philo->table);
+		ft_thinking(philo, false);
+	}
+	return (NULL);
+}
+
+void	ft_dinner_start(t_table *table)
+{
+	int	i;
+
+	i = -1;
+	if (table->nbr_limit_meals == 0)
+		return ;
+	else if (table->philo_nbr == 1)
+		ft_thread_handler(&table->philos[0].thread_id, ft_lone_philo,
+			&table->philos[0], CREATE);
+	else
+	{
+		while (table->philo_nbr > ++i)
+			ft_thread_handler(&table->philos[i].thread_id, ft_dinner_simulation,
+				&table->philos[i], CREATE);
+	}
+	ft_thread_handler(&table->monitor, ft_monitor, table, CREATE);
+	table->start_simulation = ft_gettime(MILISECOND);
+	set_bool(&table->table_mutex, &table->threads_ready, true);
+	i = -1;
+	while (table->philo_nbr > ++i)
+		ft_thread_handler(&table->philos[i].thread_id, NULL, NULL, JOIN);
+	set_bool(&table->table_mutex, &table->end_simulation, true);
+	ft_thread_handler(&table->monitor, NULL, NULL, JOIN);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   getter_setter.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 19:08:20 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/09/28 19:13:55 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	set_bool(t_mtx *mutex, bool *dest, bool value)
+{
+	ft_mutex_handler(mutex, LOCK);
+	*dest = value;
+	ft_mutex_handler(mutex, UNLOCK);
+}
+
+bool	get_bool(t_mtx *mutex, bool *value)
+{
+	bool	ret;
+
+	ft_mutex_handler(mutex, LOCK);
+	ret = *value;
+	ft_mutex_handler(mutex, UNLOCK);
+	return (ret);
+}
+
+void	set_long(t_mtx *mutex, long *dest, long value)
+{
+	ft_mutex_handler(mutex, LOCK);
+	*dest = value;
+	ft_mutex_handler(mutex, UNLOCK);
+}
+
+long	get_long(t_mtx *mutex, long *value)
+{
+	long	ret;
+
+	ft_mutex_handler(mutex, LOCK);
+	ret = *value;
+	ft_mutex_handler(mutex, UNLOCK);
+	return (ret);
+}
+
+bool	ft_simulation_finished(t_table *table)
+{
+	return (get_bool(&table->table_mutex, &table->end_simulation));
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   handlers.c                                         :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 19:20:38 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/09/28 20:34:59 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static void	ft_handle_thread_error(int status, t_opcode opcode)
+{
+	if (status == 0)
+		return ;
+	if (status == EINVAL && (LOCK == opcode || UNLOCK == opcode))
+		ft_exit_error("The value specified by mutex is invalid!");
+	else if ((status == EINVAL) && (opcode == INIT))
+		ft_exit_error("The value specified by attr is invalid!");
+	else if (status == EDEADLK)
+		ft_exit_error("A deadlock would occur if the thread blocked \
+				waiting for mutex");
+	else if (status == EPERM)
+		ft_exit_error("The current thread does not hold a lock on mutex");
+	else if (status == ENOMEM)
+		ft_exit_error("The process cannot allocate enough memory \
+				to create another mutex");
+	else if (status == EBUSY)
+		ft_exit_error("Mutex is locked");
+}
+
+void	ft_thread_handler(pthread_t	*thread, void *(*foo)(void *),
+		void*data, t_opcode opcode)
+{
+	if (opcode == CREATE)
+		ft_handle_thread_error(pthread_create(thread, NULL, foo, data), opcode);
+	else if (opcode == JOIN)
+		ft_handle_thread_error(pthread_join(*thread, NULL), opcode);
+	else if (opcode == DETACH)
+		ft_handle_thread_error(pthread_detach(*thread), opcode);
+	else
+		ft_exit_error("Wrong opcode for thread handle.");
+}
+
+static void	ft_handle_mutex_error(int status, t_opcode opcode)
+{
+	if (status == 0)
+		return ;
+	if (status == EINVAL && (LOCK == opcode || UNLOCK == opcode))
+		ft_exit_error("The value specified by mutex is invalid!");
+	else if ((status == EINVAL) && (opcode == INIT))
+		ft_exit_error("The value specified by attr is invalid!");
+	else if (status == EDEADLK)
+		ft_exit_error("A deadlock would occur if the thread blocked \
+				waiting for mutex");
+	else if (status == EPERM)
+		ft_exit_error("The current thread does not hold a lock on mutex");
+	else if (status == ENOMEM)
+		ft_exit_error("The process cannot allocate enough memory \
+				to create another mutex");
+	else if (status == EBUSY)
+		ft_exit_error("Mutex is locked");
+}
+
+void	ft_mutex_handler(t_mtx	*mutex, t_opcode opcode)
+{
+	if (opcode == LOCK)
+		ft_handle_mutex_error(pthread_mutex_lock(mutex), opcode);
+	else if (opcode == UNLOCK)
+		ft_handle_mutex_error(pthread_mutex_unlock(mutex), opcode);
+	else if (opcode == INIT)
+		ft_handle_mutex_error(pthread_mutex_init(mutex, NULL), opcode);
+	else if (opcode == DESTROY)
+		ft_handle_mutex_error(pthread_mutex_destroy(mutex), opcode);
+	else
+		ft_exit_error("Wrong opcode for mutex handle.");
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   init.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 16:52:26 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/04 17:26:04 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static void	ft_assign_forks(t_philo *philo, t_fork *forks, int position)
+{
+	int	philo_nbr;
+
+	philo_nbr = philo->table->philo_nbr;
+	philo->first_fork = &forks[(position + 1) % philo_nbr];
+	philo->second_fork = &forks[position];
+	if ((philo->id % 2) == 0)
+	{
+		philo->first_fork = &forks[position];
+		philo->second_fork = &forks[(position + 1) % philo_nbr];
+	}
+}
+
+static void	ft_philo_init(t_table *table)
+{
+	t_philo	*philo;
+	int		i;
+
+	i = -1;
+	while (table->philo_nbr > ++i)
+	{
+		philo = table->philos + i;
+		philo->id = i + 1;
+		philo->full = false;
+		philo->meals_counter = 0;
+		philo->table = table;
+		ft_mutex_handler(&philo->philo_mutex, INIT);
+		ft_assign_forks(philo, table->forks, i);
+	}
+}
+
+void	ft_data_init(t_table *table)
+{
+	int	i;
+
+	i = -1;
+	table->end_simulation = false;
+	table->threads_ready = false;
+	table->nbr_threads_running = 0;
+	table->philos = ft_malloc(sizeof(t_philo) * table->philo_nbr);
+	ft_mutex_handler(&table->table_mutex, INIT);
+	ft_mutex_handler(&table->write_mutex, INIT);
+	table->forks = ft_malloc(sizeof(t_fork) * table->philo_nbr);
+	while (table->philo_nbr > ++i)
+	{
+		ft_mutex_handler(&table->forks[i].fork, INIT);
+		table->forks[i].fork_id = i;
+	}
+	ft_philo_init(table);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   main.c                                             :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 16:10:24 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/04 19:00:21 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+int	main(int argc, char **argv)
+{
+	t_table	table;
+
+	if (argc == 5 || argc == 6)
+	{
+		ft_parse_input(&table, argv);
+		ft_data_init(&table);
+		ft_dinner_start(&table);
+		ft_clean(&table);
+	}
+	else
+	{
+		ft_exit_error(RED"Wrong input: \n"RST
+			"Correct is ./philo 5 800 200 200 [5]");
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   monitoring.c                                       :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/10/04 17:21:02 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/05 17:01:16 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static bool	ft_philo_died(t_philo *philo)
+{
+	long	elapsed;
+	long	time_to_die;
+
+	if (get_bool(&philo->philo_mutex, &philo->full))
+		return (false);
+	elapsed = ft_gettime(MILISECOND)
+		- get_long(&philo->philo_mutex, &philo->last_meal_time);
+	time_to_die = philo->table->time_to_die / 1e3;
+	if (elapsed > (time_to_die))
+		return (true);
+	return (false);
+}
+
+void	*ft_monitor(void *data)
+{
+	t_table	*table;
+	int		i;
+
+	table = (t_table *)data;
+	while (!ft_all_threads_running(&table->table_mutex,
+			&table->nbr_threads_running, table->philo_nbr))
+		;
+	while (!ft_simulation_finished(table))
+	{
+		i = -1;
+		while ((table->philo_nbr > ++i) && !ft_simulation_finished(table))
+		{
+			if (ft_philo_died(table->philos + i))
+			{
+				set_bool(&table->table_mutex, &table->end_simulation, true);
+				ft_write_status(DIED, table->philos + i);
+			}
+		}
+	}
+	return (NULL);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parsing.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 16:22:58 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/09/28 20:25:02 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+static bool	ft_is_digit(char c)
+{
+	return (c >= '0' && c <= '9');
+}
+
+static const char	*ft_is_valid(const char *str)
+{
+	const char	*number;
+	int			len;
+
+	len = 0;
+	while ((*str >= 9 && *str <= 13) || *str == 32)
+		++str;
+	if (*str == '+')
+		++str;
+	else if (*str == '-')
+		ft_exit_error("Put a positive digits!");
+	if (!ft_is_digit(*str))
+		ft_exit_error("Put a digit!");
+	number = str;
+	while (ft_is_digit(*str++))
+		++len;
+	if (len > 10)
+		ft_exit_error("The value is too big!");
+	return (number);
+}
+
+static long	ft_atol(const char *str)
+{
+	long	nbr;
+
+	nbr = 0;
+	str = ft_is_valid(str);
+	while (ft_is_digit(*str))
+		nbr = (nbr * 10) + (*str++ - 48);
+	if (nbr > INT_MAX)
+		ft_exit_error("The value is too big!");
+	return (nbr);
+}
+
+void	ft_parse_input(t_table *table, char **argv)
+{
+	table->philo_nbr = ft_atol(argv[1]);
+	table->time_to_die = ft_atol(argv[2]) * 1e3;
+	table->time_to_eat = ft_atol(argv[3]) * 1e3;
+	table->time_to_sleep = ft_atol(argv[4]) * 1e3;
+	if (table->time_to_die < 6e4
+		|| table->time_to_eat < 6e4
+		|| table->time_to_sleep < 6e4)
+		ft_exit_error("Use timestamps > 60ms");
+	if (argv[5])
+		table->nbr_limit_meals = ft_atol(argv[5]);
+	else
+		table->nbr_limit_meals = -1;
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   synchro.c                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 19:17:20 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/05 17:32:44 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	ft_wait_threads(t_table *table)
+{
+	while (!get_bool(&table->table_mutex, &table->threads_ready))
+		usleep(100);
+}
+
+bool	ft_all_threads_running(t_mtx *mutex, long *threads, long philo_nbr)
+{
+	bool	ret;
+
+	ret = false;
+	ft_mutex_handler(mutex, LOCK);
+	if (*threads == philo_nbr)
+		ret = true;
+	ft_mutex_handler(mutex, UNLOCK);
+	return (ret);
+}
+
+void	ft_increase_long(t_mtx *mutex, long *value)
+{
+	ft_mutex_handler(mutex, LOCK);
+	(*value)++;
+	ft_mutex_handler(mutex, UNLOCK);
+}
+
+void	ft_desynchronize(t_philo *philo)
+{
+	if ((philo->table->philo_nbr % 2) == 0)
+	{
+		if ((philo->id % 2) == 0)
+			ft_sleep(3e4, philo->table);
+	}
+	else
+	{
+		if (philo->id % 2)
+			ft_thinking(philo, true);
+	}
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 16:12:12 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/05 17:32:11 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	*ft_malloc(size_t bytes)
+{
+	void	*ret;
+
+	ret = malloc(bytes);
+	if (ret == NULL)
+		ft_exit_error("Malloc error...");
+	return (ret);
+}
+
+void	ft_exit_error(const char *error)
+{
+	printf(RED "%s\n" RST, error);
+	exit(EXIT_FAILURE);
+}
+
+long	ft_gettime(t_time time)
+{
+	struct timeval	tv;
+
+	if (gettimeofday(&tv, NULL))
+		ft_exit_error("gettimeofday failed!");
+	if (time == SECOND)
+		return (tv.tv_sec + (tv.tv_usec / 1e6));
+	else if (time == MILISECOND)
+		return ((tv.tv_sec * 1e3) + (tv.tv_usec / 1e3));
+	else if (time == MICROSECOND)
+		return ((tv.tv_sec * 1e6) + tv.tv_usec);
+	else
+		ft_exit_error("Wrong input to gettime!");
+	return (1337);
+}
+
+void	ft_sleep(long usec, t_table *table)
+{
+	long	start;
+	long	elapsed;
+	long	rem;
+
+	start = ft_gettime(MICROSECOND);
+	while (ft_gettime(MICROSECOND) - start < usec)
+	{
+		if (ft_simulation_finished(table))
+			break ;
+		elapsed = ft_gettime(MICROSECOND) - start;
+		rem = usec - elapsed;
+		if (rem > 1e3)
+			usleep(rem / 2);
+		else if (rem > 100)
+			usleep(50);
+		else
+		{
+			while (ft_gettime(MICROSECOND) - start < usec)
+				;
+		}
+	}
+}
+
+void	ft_clean(t_table *table)
+{
+	int		i;
+
+	i = -1;
+	while (table->philo_nbr > ++i)
+	{
+		ft_mutex_handler(&table->philos[i].philo_mutex, DESTROY);
+		ft_mutex_handler(&table->forks[i].fork, DESTROY);
+	}
+	ft_mutex_handler(&table->write_mutex, DESTROY);
+	ft_mutex_handler(&table->table_mutex, DESTROY);
+	free(table->forks);
+	free(table->philos);
+}
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   write.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2025/09/28 19:45:29 by ghenriqu          #+#    #+#             */
+/*   Updated: 2025/10/05 17:16:15 by ghenriqu         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+#include "philo.h"
+
+void	ft_write_status(t_philo_status status, t_philo *philo)
+{
+	long	elapsed;
+
+	if (status != DIED && get_bool(&philo->philo_mutex, &philo->full))
+		return ;
+	if (status != DIED && ft_simulation_finished(philo->table))
+		return ;
+	ft_mutex_handler(&philo->table->write_mutex, LOCK);
+	elapsed = ft_gettime(MILISECOND) - philo->table->start_simulation;
+	if ((status == TAKE_FIRST_FORK || status == TAKE_SECOND_FORK)
+		&& !ft_simulation_finished(philo->table))
+		printf("%-6ld %d has taken a fork\n", elapsed, philo->id);
+	else if (status == EATING && !ft_simulation_finished(philo->table))
+		printf("%-6ld %d is eating\n", elapsed, philo->id);
+	else if (status == SLEEPING && !ft_simulation_finished(philo->table))
+		printf("%-6ld %d is sleeping\n", elapsed, philo->id);
+	else if (status == THINKING && !ft_simulation_finished(philo->table))
+		printf("%-6ld %d is thinking\n", elapsed, philo->id);
+	else if (status == DIED)
+		printf("%-6ld %d died\n", elapsed, philo->id);
+	ft_mutex_handler(&philo->table->write_mutex, UNLOCK);
+}

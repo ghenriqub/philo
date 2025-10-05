@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/10/04 17:21:02 by ghenriqu          #+#    #+#             */
-/*   Updated: 2025/10/05 17:01:16 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/05 17:37:35 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,7 @@ void	*ft_monitor(void *data)
 	table = (t_table *)data;
 	while (!ft_all_threads_running(&table->table_mutex,
 			&table->nbr_threads_running, table->philo_nbr))
-		;
+		usleep(100);
 	while (!ft_simulation_finished(table))
 	{
 		i = -1;
