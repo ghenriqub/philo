@@ -6,7 +6,7 @@
 /*   By: ghenriqu <ghenriqu@student.42porto.com>    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/06/28 19:44:24 by lgertrud          #+#    #+#             */
-/*   Updated: 2025/10/11 20:28:37 by ghenriqu         ###   ########.fr       */
+/*   Updated: 2025/10/12 18:13:45 by ghenriqu         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,7 +54,8 @@ int				validate_args(int argc, char **argv);
 int				check_caracters(char **arr);
 void			set_args(t_rules *rules, char **argv);
 t_philosopher	*ft_init_philos(t_rules *rules);
-// support functions
+
+// Support functions
 int				ft_atoi(const char *nptr);
 int				ft_isdigit(int c);
 size_t			ft_strlen(const char *str);
